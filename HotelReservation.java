@@ -23,13 +23,17 @@ public class HotelReservation {
 		String startdate = SC.next();
 		String enddate = SC.next();
 		HotelReservation hotelReservation = new HotelReservation();
-		Hotel hotel1 = new Hotel("Lakewood", 110, 90,3);
-		Hotel hotel2 = new Hotel("Bridgewood", 150, 50,4);
-		Hotel hotel3 = new Hotel("Ridgewood", 220, 150,5);
+		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 3);
+		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 4);
+		Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 5);
 		hotelReservation.addHotel(hotel1);
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
-		hotelReservation.cheapestBestRatedHotel(startdate, enddate);
+		Map<Hotel, Long> hotelCharges = hotelReservation.getHotelCharges(startdate, enddate);
+		System.out.println("Best rated among the cheapest hotels:");
+		print(hotelReservation.bestRatedCheapestHotel(startdate, enddate));
+		System.out.println("Best rated hotel:");
+		print(hotelReservation.bestRatedHotels(hotelCharges));
 	}
 
 	// Adding hotel to the list of hotels
@@ -37,8 +41,8 @@ public class HotelReservation {
 		myHotelList.add(hotel);
 	}
 
-	// Finding cheapest hotel for given date range
-	public Map<Hotel,Integer> cheapestBestRatedHotel(String date1, String date2) {
+	// Making Hotel-Charges map for the date range
+	public Map<Hotel, Long> getHotelCharges(String date1, String date2) {
 		Date startDate = null;
 		Date endDate = null;
 		SimpleDateFormat format = new SimpleDateFormat("ddMMMyyyy");
@@ -48,8 +52,6 @@ public class HotelReservation {
 		} catch (ParseException e) {
 			System.out.println("Please enter valid dates");
 		}
-		
-		//Calculating weekends and weekdays in the date range
 		int weekDays = 0;
 		int weekEnds = 0;
 		Date date = startDate;
@@ -58,33 +60,38 @@ public class HotelReservation {
 				weekEnds++;
 			else
 				weekDays++;
-			date = addDayToDate(date);
+			date = addOneDayToDate(date);
 		}
-		
-		//Mapping hotel with it's charges for the date range
-		Map<Hotel,Long> hotelCharges = new HashMap<>();
+		Map<Hotel, Long> hotelCharges = new HashMap<>();
 		for (Hotel hotel : myHotelList) {
 			long charges = hotel.getWeekdayRegularCustomerRate() * weekDays
-							+ hotel.getWeekendRegularCustomerRate() * weekEnds;
+					+ hotel.getWeekendRegularCustomerRate() * weekEnds;
 			hotelCharges.put(hotel, charges);
 		}
-		
-		//Picking cheapest hotel(s) as Map<Hotel,Rating>
+		return hotelCharges;
+	}
+
+	// Finding cheapest hotel in the given Hotel-Charges map
+	public Map<Hotel, Long> cheapestHotels(Map<Hotel, Long> hotelCharges) {
 		Long minCharges = Collections.min(hotelCharges.values());
-		Map<Hotel,Integer> cheapestHotelsAndRatings = hotelCharges.entrySet().stream()
-													.filter(e -> e.getValue().equals(minCharges))
-													.collect(Collectors.toMap(p -> p.getKey(), p -> p.getKey().getRating()));
-		
-		//Modifying cheapestHotelsAndRatings to contain only hotel(s) with maximum rating
-		int maxRating = Collections.max(cheapestHotelsAndRatings.values());
-		cheapestHotelsAndRatings = cheapestHotelsAndRatings.entrySet().stream()
-										.filter(e -> e.getValue().equals(maxRating))
-										.collect(Collectors.toMap(p-> p.getKey(), p -> p.getValue()));
-		
-		cheapestHotelsAndRatings.entrySet().stream()
-		.forEach(e-> System.out.println(e.getKey().getHotelName()+", Rating: "+e.getKey().getRating()+" and Total Rates: $"+minCharges));
-		
-		return cheapestHotelsAndRatings;
+		hotelCharges = hotelCharges.entrySet().stream().filter(e -> e.getValue().equals(minCharges))
+						.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+		return hotelCharges;
+	}
+
+	// Finding the best rated hotel in the given Hotel-Charges map
+	public Map<Hotel, Long> bestRatedHotels(Map<Hotel, Long> hotelCharges) {
+		List<Integer> ratingsList = hotelCharges.entrySet().stream().map(e -> e.getKey().getRating())
+									.collect(Collectors.toList());
+		int maxRating = Collections.max(ratingsList);
+		hotelCharges = hotelCharges.entrySet().stream().filter(e -> e.getKey().getRating() == maxRating)
+						.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+		return hotelCharges;
+	}
+
+	// Finding cheapest best rated hotel
+	public Map<Hotel, Long> bestRatedCheapestHotel(String date1, String date2) {
+		return bestRatedHotels(cheapestHotels(getHotelCharges(date1, date2)));
 	}
 
 	// Finding the day of the week from given date
@@ -94,9 +101,15 @@ public class HotelReservation {
 	}
 
 	// Adding a day to given date
-	public Date addDayToDate(Date date) {
+	public Date addOneDayToDate(Date date) {
 		calendar.setTime(date);
 		calendar.add(Calendar.DAY_OF_MONTH, 1);
 		return calendar.getTime();
+	}
+
+	// Printing hotel info
+	public static void print(Map<Hotel, Long> hotelsCharges) {
+		hotelsCharges.entrySet().stream().forEach(e -> System.out.println(e.getKey().getHotelName() + ", Rating: "
+				+ e.getKey().getRating() + " and Total Rates: $" + e.getValue()));
 	}
 }
