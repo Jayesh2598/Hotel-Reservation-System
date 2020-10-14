@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 public class HotelReservation {
 
 	static Scanner SC = new Scanner(System.in);
-	
+
 	private List<Hotel> myHotelList = new ArrayList<Hotel>();
 
 	public List<Hotel> getMyHotelList() {
@@ -20,9 +20,9 @@ public class HotelReservation {
 		String startdate = SC.next();
 		String enddate = SC.next();
 		HotelReservation hotelReservation = new HotelReservation();
-		Hotel hotel1 = new Hotel("Lakewood",110);
-		Hotel hotel2 = new Hotel("Bridgewood",160);
-		Hotel hotel3 = new Hotel("Ridgewood",220);
+		Hotel hotel1 = new Hotel("Lakewood", 110, 90);
+		Hotel hotel2 = new Hotel("Bridgewood", 150, 50);
+		Hotel hotel3 = new Hotel("Ridgewood", 220, 150);
 		hotelReservation.addHotel(hotel1);
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
@@ -33,11 +33,11 @@ public class HotelReservation {
 	public void addHotel(Hotel hotel) {
 		myHotelList.add(hotel);
 	}
-	
-	//Finding cheapest hotel for given date range
+
+	// Finding cheapest hotel for given date range
 	public Hotel cheapestHotel(String date1, String date2) {
-		Date startDate=null;
-		Date endDate=null;
+		Date startDate = null;
+		Date endDate = null;
 		SimpleDateFormat format = new SimpleDateFormat("ddMMMyyyy");
 		try {
 			startDate = format.parse(date1);
@@ -45,14 +45,15 @@ public class HotelReservation {
 		} catch (ParseException e) {
 			System.out.println("Please enter valid dates");
 		}
-		long days = Math.abs(endDate.getTime() - startDate.getTime())/(1000*60*60*24);	
+		long days = Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
 		List<Long> chargesList = new ArrayList<>();
-		for(Hotel hotel: myHotelList) {
-			long charges = hotel.getRegularCustomerRate()*(days+1);
+		for (Hotel hotel : myHotelList) {
+			long charges = hotel.getWeekdayRegularCustomerRate() * (days + 1);
 			chargesList.add(charges);
 		}
 		int hotelIndex = chargesList.indexOf(Collections.min(chargesList));
-		System.out.println(myHotelList.get(hotelIndex).getHotelName()+", Total Rates: $"+chargesList.get(hotelIndex));
+		System.out
+				.println(myHotelList.get(hotelIndex).getHotelName() + ", Total Rates: $" + chargesList.get(hotelIndex));
 		return myHotelList.get(hotelIndex);
 	}
 }
