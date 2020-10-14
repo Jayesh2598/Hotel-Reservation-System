@@ -9,4 +9,12 @@ public class Hotel {
 		this.hotelName = hotelName;
 		this.regularCustomerRate = regularCustomerRate;
 	}
+
+	public String getHotelName() {
+		return hotelName;
+	}
+
+	public int getRegularCustomerRate() {
+		return regularCustomerRate;
+	}
 }
