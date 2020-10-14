@@ -29,7 +29,7 @@ public class HotelReservation {
 		hotelReservation.addHotel(hotel1);
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
-		hotelReservation.cheapestHotel(startdate, enddate);
+		hotelReservation.cheapestBestRatedHotel(startdate, enddate);
 	}
 
 	// Adding hotel to the list of hotels
@@ -38,7 +38,7 @@ public class HotelReservation {
 	}
 
 	// Finding cheapest hotel for given date range
-	public List<Hotel> cheapestHotel(String date1, String date2) {
+	public Map<Hotel,Integer> cheapestBestRatedHotel(String date1, String date2) {
 		Date startDate = null;
 		Date endDate = null;
 		SimpleDateFormat format = new SimpleDateFormat("ddMMMyyyy");
@@ -69,14 +69,22 @@ public class HotelReservation {
 			hotelCharges.put(hotel, charges);
 		}
 		
-		//Picking cheapest hotel(s)
+		//Picking cheapest hotel(s) as Map<Hotel,Rating>
 		Long minCharges = Collections.min(hotelCharges.values());
-		List<Hotel> cheapestHotelsList = hotelCharges.entrySet().stream()
-											.filter(e -> e.getValue().equals(minCharges))
-											.map(Map.Entry::getKey).collect(Collectors.toList());
-		cheapestHotelsList.stream().forEach(e-> System.out.println(e.getHotelName()+", Total Rates: $"+minCharges));
+		Map<Hotel,Integer> cheapestHotelsAndRatings = hotelCharges.entrySet().stream()
+													.filter(e -> e.getValue().equals(minCharges))
+													.collect(Collectors.toMap(p -> p.getKey(), p -> p.getKey().getRating()));
 		
-		return cheapestHotelsList;
+		//Modifying cheapestHotelsAndRatings to contain only hotel(s) with maximum rating
+		int maxRating = Collections.max(cheapestHotelsAndRatings.values());
+		cheapestHotelsAndRatings = cheapestHotelsAndRatings.entrySet().stream()
+										.filter(e -> e.getValue().equals(maxRating))
+										.collect(Collectors.toMap(p-> p.getKey(), p -> p.getValue()));
+		
+		cheapestHotelsAndRatings.entrySet().stream()
+		.forEach(e-> System.out.println(e.getKey().getHotelName()+", Rating: "+e.getKey().getRating()+" and Total Rates: $"+minCharges));
+		
+		return cheapestHotelsAndRatings;
 	}
 
 	// Finding the day of the week from given date
