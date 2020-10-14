@@ -1,12 +1,16 @@
 package com.capgemini.hotelReservation;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class HotelReservation {
 
 	static Scanner SC = new Scanner(System.in);
+
+	Calendar calendar = Calendar.getInstance();
 
 	private List<Hotel> myHotelList = new ArrayList<Hotel>();
 
@@ -35,7 +39,7 @@ public class HotelReservation {
 	}
 
 	// Finding cheapest hotel for given date range
-	public Hotel cheapestHotel(String date1, String date2) {
+	public List<Hotel> cheapestHotel(String date1, String date2) {
 		Date startDate = null;
 		Date endDate = null;
 		SimpleDateFormat format = new SimpleDateFormat("ddMMMyyyy");
@@ -45,15 +49,47 @@ public class HotelReservation {
 		} catch (ParseException e) {
 			System.out.println("Please enter valid dates");
 		}
-		long days = Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-		List<Long> chargesList = new ArrayList<>();
-		for (Hotel hotel : myHotelList) {
-			long charges = hotel.getWeekdayRegularCustomerRate() * (days + 1);
-			chargesList.add(charges);
+		
+		//Calculating weekends and weekdays in the date range
+		int weekDays = 0;
+		int weekEnds = 0;
+		Date date = startDate;
+		while ((date.compareTo(endDate) <= 0)) {
+			if (getDayNumber(date) == 1 || getDayNumber(date) == 7)
+				weekEnds++;
+			else
+				weekDays++;
+			date = addDayToDate(date);
 		}
-		int hotelIndex = chargesList.indexOf(Collections.min(chargesList));
-		System.out
-				.println(myHotelList.get(hotelIndex).getHotelName() + ", Total Rates: $" + chargesList.get(hotelIndex));
-		return myHotelList.get(hotelIndex);
+		
+		//Mapping hotel with it's charges for the date range
+		Map<Hotel,Long> hotelCharges = new HashMap<>();
+		for (Hotel hotel : myHotelList) {
+			long charges = hotel.getWeekdayRegularCustomerRate() * weekDays
+							+ hotel.getWeekendRegularCustomerRate() * weekEnds;
+			hotelCharges.put(hotel, charges);
+		}
+		
+		//Picking cheapest hotel(s)
+		Long minCharges = Collections.min(hotelCharges.values());
+		List<Hotel> cheapestHotelsList = hotelCharges.entrySet().stream()
+											.filter(e -> e.getValue().equals(minCharges))
+											.map(Map.Entry::getKey).collect(Collectors.toList());
+		cheapestHotelsList.stream().forEach(e-> System.out.println(e.getHotelName()+", Total Rates: $"+minCharges));
+		
+		return cheapestHotelsList;
+	}
+
+	// Finding the day of the week from given date
+	public int getDayNumber(Date date) {
+		calendar.setTime(date);
+		return calendar.get(Calendar.DAY_OF_WEEK);
+	}
+
+	// Adding a day to given date
+	public Date addDayToDate(Date date) {
+		calendar.setTime(date);
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		return calendar.getTime();
 	}
 }
