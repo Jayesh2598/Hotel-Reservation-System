@@ -23,9 +23,9 @@ public class HotelReservation {
 		String startdate = SC.next();
 		String enddate = SC.next();
 		HotelReservation hotelReservation = new HotelReservation();
-		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 3);
-		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 4);
-		Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 5);
+		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 80, 80, 3);
+		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 110, 50, 4);
+		Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 100, 40, 5);
 		hotelReservation.addHotel(hotel1);
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
