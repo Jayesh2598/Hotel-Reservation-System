@@ -19,7 +19,7 @@ public class HotelReservationTest {
 	}
 
 	@Test
-	public void given2DatesShouldReturnCheapestAndBestRatedHotelsForTheDateRange() {
+	public void given2DatesShouldReturnCheapestAndBestRatedHotelsForRegularCustomer() {
 		HotelReservation hotelReservation = new HotelReservation();
 		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 80, 80, 3);
 		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 110, 50, 4);
@@ -27,7 +27,7 @@ public class HotelReservationTest {
 		hotelReservation.addHotel(hotel1);
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
-		Map<Hotel, Long> cheapestBestRatedHotels = hotelReservation.bestRatedCheapestHotel("11Sep2020", "12Sep2020");
+		Map<Hotel, Long> cheapestBestRatedHotels = hotelReservation.bestRatedCheapestHotel("11Sep2020", "12Sep2020", "Regular");
 		assertTrue(cheapestBestRatedHotels.containsKey(hotel2));
 		assertFalse(cheapestBestRatedHotels.containsKey(hotel1));
 		assertFalse(cheapestBestRatedHotels.containsKey(hotel3));
@@ -43,9 +43,25 @@ public class HotelReservationTest {
 		hotelReservation.addHotel(hotel2);
 		hotelReservation.addHotel(hotel3);
 		Map<Hotel, Long> bestRatedHotels = hotelReservation
-				.bestRatedHotels(hotelReservation.getHotelCharges("11Sep2020", "12Sep2020"));
+				.bestRatedHotels(hotelReservation.getHotelCharges("11Sep2020", "12Sep2020", "Regular"));
 		assertTrue(bestRatedHotels.containsKey(hotel3));
 		assertFalse(bestRatedHotels.containsKey(hotel2));
 		assertFalse(bestRatedHotels.containsKey(hotel1));
+	}
+	
+	@Test
+	public void given2DatesShouldReturnCheapestAndBestRatedHotelsForRewardCustomer() {
+		HotelReservation hotelReservation = new HotelReservation();
+		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 80, 80, 3);
+		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 110, 50, 4);
+		Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 100, 40, 5);
+		hotelReservation.addHotel(hotel1);
+		hotelReservation.addHotel(hotel2);
+		hotelReservation.addHotel(hotel3);
+		Map<Hotel, Long> bestRatedHotels = hotelReservation
+				.bestRatedHotels(hotelReservation.getHotelCharges("11Sep2020", "12Sep2020", "Reward"));
+		assertTrue(bestRatedHotels.containsKey(hotel3));
+		assertFalse(bestRatedHotels.containsKey(hotel1));
+		assertFalse(bestRatedHotels.containsKey(hotel2));
 	}
 }

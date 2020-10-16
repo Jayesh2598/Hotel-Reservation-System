@@ -17,23 +17,31 @@ public class HotelReservation {
 		return myHotelList;
 	}
 
-	public static void main(String[] args) throws ParseException {
+	public static void main(String[] args) {
 		System.out.println("Welcome to Hotel Reservation Program!");
-		System.out.println("Enter start and end dates: (ddMMMyyyy)");
-		String startdate = SC.next();
-		String enddate = SC.next();
-		HotelReservation hotelReservation = new HotelReservation();
-		Hotel hotel1 = new Hotel("Lakewood", 110, 90, 80, 80, 3);
-		Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 110, 50, 4);
-		Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 100, 40, 5);
-		hotelReservation.addHotel(hotel1);
-		hotelReservation.addHotel(hotel2);
-		hotelReservation.addHotel(hotel3);
-		Map<Hotel, Long> hotelCharges = hotelReservation.getHotelCharges(startdate, enddate);
-		System.out.println("Best rated among the cheapest hotels:");
-		print(hotelReservation.bestRatedCheapestHotel(startdate, enddate));
-		System.out.println("Best rated hotel:");
-		print(hotelReservation.bestRatedHotels(hotelCharges));
+		String startdate;
+		String enddate;
+		String customerType;
+		try {
+			System.out.println("Enter start and end dates: (ddMMMyyyy)");
+			startdate = SC.nextLine().trim();
+			enddate = SC.nextLine().trim();
+			System.out.println("Enter the customer type: (Reward or Regular)");
+			customerType = SC.nextLine().trim();
+			validateEntries(startdate, enddate, customerType);
+			HotelReservation hotelReservation = new HotelReservation();
+			Hotel hotel1 = new Hotel("Lakewood", 110, 90, 80, 80, 3);
+			Hotel hotel2 = new Hotel("Bridgewood", 150, 50, 110, 50, 4);
+			Hotel hotel3 = new Hotel("Ridgewood", 220, 150, 100, 40, 5);
+			hotelReservation.addHotel(hotel1);
+			hotelReservation.addHotel(hotel2);
+			hotelReservation.addHotel(hotel3);
+			Map<Hotel, Long> hotelCharges = hotelReservation.getHotelCharges(startdate, enddate, customerType);
+			System.out.println("Cheapest among the best rated hotels:");
+			print(hotelReservation.cheapestBestRatedHotel(startdate, enddate, customerType));
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 	// Adding hotel to the list of hotels
@@ -42,7 +50,7 @@ public class HotelReservation {
 	}
 
 	// Making Hotel-Charges map for the date range
-	public Map<Hotel, Long> getHotelCharges(String date1, String date2) {
+	public Map<Hotel, Long> getHotelCharges(String date1, String date2, String customerType) {
 		Date startDate = null;
 		Date endDate = null;
 		SimpleDateFormat format = new SimpleDateFormat("ddMMMyyyy");
@@ -63,11 +71,18 @@ public class HotelReservation {
 			date = addOneDayToDate(date);
 		}
 		Map<Hotel, Long> hotelCharges = new HashMap<>();
-		for (Hotel hotel : myHotelList) {
-			long charges = hotel.getWeekdayRegularCustomerRate() * weekDays
-					+ hotel.getWeekendRegularCustomerRate() * weekEnds;
-			hotelCharges.put(hotel, charges);
-		}
+		if (customerType.equalsIgnoreCase("Regular"))
+			for (Hotel hotel : myHotelList) {
+				long charges = hotel.getWeekdayRegularCustomerRate() * weekDays
+						+ hotel.getWeekendRegularCustomerRate() * weekEnds;
+				hotelCharges.put(hotel, charges);
+			}
+		if (customerType.equalsIgnoreCase("Reward"))
+			for (Hotel hotel : myHotelList) {
+				long charges = hotel.getWeekdayRewardCustomerRate() * weekDays
+						+ hotel.getWeekendRewardCustomerRate() * weekEnds;
+				hotelCharges.put(hotel, charges);
+			}
 		return hotelCharges;
 	}
 
@@ -75,23 +90,38 @@ public class HotelReservation {
 	public Map<Hotel, Long> cheapestHotels(Map<Hotel, Long> hotelCharges) {
 		Long minCharges = Collections.min(hotelCharges.values());
 		hotelCharges = hotelCharges.entrySet().stream().filter(e -> e.getValue().equals(minCharges))
-						.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+				.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 		return hotelCharges;
 	}
 
 	// Finding the best rated hotel in the given Hotel-Charges map
 	public Map<Hotel, Long> bestRatedHotels(Map<Hotel, Long> hotelCharges) {
 		List<Integer> ratingsList = hotelCharges.entrySet().stream().map(e -> e.getKey().getRating())
-									.collect(Collectors.toList());
+				.collect(Collectors.toList());
 		int maxRating = Collections.max(ratingsList);
 		hotelCharges = hotelCharges.entrySet().stream().filter(e -> e.getKey().getRating() == maxRating)
-						.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+				.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 		return hotelCharges;
 	}
 
-	// Finding cheapest best rated hotel
-	public Map<Hotel, Long> bestRatedCheapestHotel(String date1, String date2) {
-		return bestRatedHotels(cheapestHotels(getHotelCharges(date1, date2)));
+	// Finding best rated among the cheapest hotels
+	public Map<Hotel, Long> bestRatedCheapestHotel(String date1, String date2, String customerType) {
+		return bestRatedHotels(cheapestHotels(getHotelCharges(date1, date2, customerType)));
+	}
+	
+	//Finding cheapest among the best rated hotels
+	public Map<Hotel, Long> cheapestBestRatedHotel(String date1, String date2, String customerType) {
+		return cheapestHotels(bestRatedHotels(getHotelCharges(date1, date2, customerType)));
+	}
+
+	// Validate user entries
+	public static void validateEntries(String date1, String date2, String customerType) throws Exception {
+		boolean entryCheck = date1.matches("[0-3][0-9][A-Z][a-z]{2}[0-9]{4}")
+							&& date2.matches("[0-3][0-9][A-Z][a-z]{2}[0-9]{4}")
+							&& (customerType.equalsIgnoreCase("regular") || customerType.equalsIgnoreCase("reward"));
+		boolean dateCheck = (date2.compareTo(date1) >= 0);
+		if (!(entryCheck && dateCheck))
+			throw new Exception("Invalid input.");
 	}
 
 	// Finding the day of the week from given date
