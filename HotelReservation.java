@@ -75,11 +75,10 @@ public class HotelReservation {
 		final int totalWeekEnds = weekEnds;
 		Map<Hotel, Long> hotelCharges = new HashMap<>();
 		if (customerType.equalsIgnoreCase("Regular"))
-			for (Hotel hotel : myHotelList) {
-				long charges = hotel.getWeekdayRegularCustomerRate() * weekDays
-						+ hotel.getWeekendRegularCustomerRate() * weekEnds;
-				hotelCharges.put(hotel, charges);
-			}
+			hotelCharges = myHotelList.stream()
+							.collect(Collectors.toMap(hotel -> (Hotel) hotel,
+									hotel -> Long.valueOf(hotel.getWeekdayRegularCustomerRate() * totalWeekDays
+									+ hotel.getWeekendRegularCustomerRate() * totalWeekEnds)));
 		if (customerType.equalsIgnoreCase("Reward")) {
 			hotelCharges = myHotelList.stream()
 							.collect(Collectors.toMap(hotel -> (Hotel) hotel,
